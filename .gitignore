@@ -1,0 +1,5 @@
+# Release zips are published as GitHub Release assets, not committed
+*.zip
+
+node_modules/
+*.log
