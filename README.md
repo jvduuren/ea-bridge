@@ -175,6 +175,10 @@ Each folder holds exactly what goes into that edition's release zip, so
 The repository contains the compiled bridge (`ea-bridge.exe`); its C# source
 is not included.
 
+## License
+
+[MIT](LICENSE) © 2026 Jan van Duuren
+
 ## Third-party components
 
 ea-bridge ships `Newtonsoft.Json.dll` (Json.NET 13.0.4, MIT License). See
