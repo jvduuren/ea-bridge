@@ -56,23 +56,48 @@ same protocol, but are built and installed differently.
    .\install.ps1
    ```
 
-3. Use it from Node.js:
+3. Use it from Node.js. The install location and the typical mode differ per edition.
+
+   **Architect edition**: attach to the EA you have open on your desktop.
 
    ```js
    const path = require('path');
-   const installDir = path.join(process.env.LOCALAPPDATA, 'ea-bridge');   // Architect edition
+   const installDir = path.join(process.env.LOCALAPPDATA, 'ea-bridge');
    const { EABridge } = require(path.join(installDir, 'ea-client.js'));
 
    const ea = new EABridge({
        exePath: path.join(installDir, 'ea-bridge.exe'),
        model:   'C:\\path\\to\\your-model.qea',
-       mode:    'attach',          // or 'spawn' for headless
+       mode:    'attach',
    });
 
    try {
        await ea.start();
        const rows = await ea.sqlRows('SELECT Object_ID, Name FROM t_object LIMIT 10');
        console.log(rows);          // [{ Object_ID: 1, Name: '...' }, ...]
+   } finally {
+       await ea.close();           // releases COM refs; your EA keeps running
+   }
+   ```
+
+   **Server edition**: headless batch job, e.g. from Task Scheduler under a service account.
+
+   ```js
+   const path = require('path');
+   const installDir = 'C:\\Program Files\\ea-bridge';   // or the path you passed to install.ps1 -InstallPath
+   const { EABridge } = require(path.join(installDir, 'ea-client.js'));
+
+   const ea = new EABridge({
+       exePath: path.join(installDir, 'ea-bridge.exe'),
+       model:   'C:\\path\\to\\your-model.qea',
+       mode:    'spawn',
+       callTimeoutMs: 6 * 3600 * 1000,   // long jobs such as RunHTMLReport (default is 60 s)
+   });
+
+   try {
+       await ea.start();
+       const n = await ea.sqlValue('SELECT COUNT(*) AS n FROM t_object');
+       console.log(`${n} objects`);
    } finally {
        await ea.close();           // only kills EA if the bridge started it
    }
